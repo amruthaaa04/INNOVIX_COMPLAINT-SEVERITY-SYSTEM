@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request
 from textblob import TextBlob
-import sqlite3
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 
 app = Flask(__name__)
 
-# Initialize Database
+import sqlite3
+
 def init_db():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
@@ -20,44 +22,68 @@ def init_db():
     """)
     conn.commit()
     conn.close()
-    print("Database initialized successfully")
+    print("Database initialized successfully") 
 
-# Home Page
+
+train_texts = [
+    "Gas leak emergency",
+    "Fire accident in building",
+    "Road is damaged badly",
+    "Water leakage problem",
+    "Street light not working",
+    "Garbage not collected",
+    "Bus stop needs cleaning",
+    "Park maintenance required"
+]
+
+train_labels = [
+    "High", "High",
+    "Medium", "Medium",
+    "Low", "Low",
+    "Low", "Low"
+] 
+
+vectorizer = TfidfVectorizer()
+X_train = vectorizer.fit_transform(train_texts)
+
+model = LogisticRegression()
+model.fit(X_train, train_labels)
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# Submit Complaint (WITH NLP + OUTPUT)
 @app.route("/submit", methods=["POST"])
 def submit():
     complaint_text = request.form["complaint"]
 
     # NLP Sentiment Analysis
     blob = TextBlob(complaint_text)
-    sentiment = blob.sentiment.polarity  # -1 to +1
+    sentiment = blob.sentiment.polarity  # range: -1 to +1
 
-    print("Sentiment score:", sentiment)  # terminal output
+    # ML Severity Prediction
+    X_input = vectorizer.transform([complaint_text])
+    severity = model.predict(X_input)[0]
 
+    # Store in database
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO complaints (complaint_text, sentiment)
-        VALUES (?, ?)
-    """, (complaint_text, sentiment))
-
+    cursor.execute(
+        "INSERT INTO complaints (complaint_text, sentiment, severity) VALUES (?, ?, ?)",
+        (complaint_text, sentiment, severity)
+    )
     conn.commit()
     conn.close()
 
-    # IMPORTANT: show sentiment in browser
-    return f"Complaint submitted! Sentiment score: {sentiment}"
+    print("Sentiment:", sentiment)
+    print("Severity predicted:", severity)
 
-# Admin Page
+    return "Complaint submitted successfully!"
 @app.route("/admin")
 def admin():
     return render_template("admin.html")
 
-# Run App
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(debug=True) 
+ 
