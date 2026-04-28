@@ -7,8 +7,8 @@
 - Team members added
 
 ### In Progress:
-- Designing NLP model
+- Frontend Implementation 
 
 ### Next Steps:
 - Build classifier
-- Add priority detection
+- NLP processing 
