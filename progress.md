@@ -43,4 +43,23 @@ o	http://127.0.0.1:5000/admin (Admin Dashboard)
 •	Rule-based severity prediction 
 •	Duplicate complaint detection using text similarity 
 •	Priority ranking mechanism 
-•	Admin dashboard with sorted complaints
+•	Admin dashboard with sorted complaints   
+
+CHECKPOINT 3 PROGRESS: 
+NLP Sentiment Analysis
+Implemented using TextBlob
+Extracts sentiment polarity from complaint text
+Polarity range:
+-1 → Very negative
+0 → Neutral
++1 → Positive
+Sentiment score is stored in the database for analysis and future prioritization
+ Machine Learning Severity Prediction
+Text complaints are converted into numerical form using TF-IDF Vectorization
+A Logistic Regression classifier predicts complaint severity:
+Low
+Medium
+High
+A small labeled dataset is used for training as part of the hackathon prototype
+ Note: Currently, severity is predicted using ML only.
+Hybrid (rule-based + ML) severity correction will be added in upcoming checkpoints.
