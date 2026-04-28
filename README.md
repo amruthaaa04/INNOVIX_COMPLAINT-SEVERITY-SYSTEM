@@ -1,2 +1,4 @@
 # INNOVIX_COMPLAINT-SEVERITY-SYSTEM
-AI-powered complaint management system using NLP and machine learning to classify, prioritize, and assist decision-making for public grievance resolution.
+Problem Statement :
+Public service authorities receive a large number of citizen complaints daily, but current systems lack intelligent prioritization, causing delays in resolving critical issues. We aim to build an intelligent decision-support system that analyzes complaint text, predicts severity, detects duplicate issues, and prioritizes complaints to help authorities respond faster and more effectively
+Explanation : Our project is an intelligent public complaint management system. Citizens submit complaints through a web platform. The system uses NLP to understand the complaint text, ML to predict severity, detects duplicate complaints from the same area, and ranks them by priority for authorities. This supports faster and more informed decision-making.”
