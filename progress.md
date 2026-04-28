@@ -62,4 +62,8 @@ Medium
 High
 A small labeled dataset is used for training as part of the hackathon prototype
  Note: Currently, severity is predicted using ML only.
-Hybrid (rule-based + ML) severity correction will be added in upcoming checkpoints.
+Hybrid (rule-based + ML) severity correction will be added in upcoming checkpoints.  
+
+CHECKPOINT 4 PROGRESS:  
+Developed a ML model and trained it to detect the severity of the complaint and trained it using TF-IDF and sentiment analysis is done suing NLP .
+Also implemnted priority tracking of the complaints on the basis of their priority and also implemented duplicate complaint detection to avoid dupliactes and improve the efficiency of the system.
