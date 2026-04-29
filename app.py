@@ -1,157 +1,78 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from textblob import TextBlob
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression 
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import sqlite3
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-import sqlite3
-
+# ---------------- DATABASE ----------------
 def init_db():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS complaints (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            complaint_text TEXT,
-            sentiment REAL,
-            severity TEXT,
-            priority REAL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
+    CREATE TABLE IF NOT EXISTS complaints (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        complaint_text TEXT,
+        sentiment REAL DEFAULT 0,
+        severity TEXT,
+        priority REAL,
+        duplicate_count INTEGER DEFAULT 1,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
     """)
     conn.commit()
     conn.close()
-    print("Database initialized successfully") 
 
+# ---------------- MODEL ----------------
 train_texts = [
-    # ---------------- HIGH ----------------
-    "Gas leak in apartment building emergency",
-    "Fire broke out in school laboratory",
-    "Hospital has no electricity during surgery",
-    "Severe accident on highway injured people",
-    "School building collapsed partially",
-    "No drinking water in entire village for days",
-    "Women are being harassed near bus stop at night",
-    "Street is unsafe due to criminal activity",
-    "Chain snatching incidents increasing in locality",
-    "No CCTV cameras in crime prone area",
-    "Gas leakage smell from factory",
-    "Fire in slum area no fire brigade arrived",
-    "Hospital refusing emergency treatment",
-    "Chemical waste dumped into lake",
-    "Severe air pollution from burning waste",
-    "Flood water entering houses",
-
-    # ---------------- MEDIUM ----------------
-    "No proper education due to low funding in school",
-    "Road is full of potholes and damaged",
-    "Sewage water overflowing on street",
-    "Water supply is irregular in our area",
-    "Bus service is delayed every day",
-    "School classrooms are in bad condition",
-    "Teacher shortage affecting studies",
-    "Students not getting learning materials",
-    "No job opportunities in local area",
-    "Skill development programs not available",
-    "Government job application process delayed",
-    "Air pollution due to construction work",
-    "Factory releasing smoke affecting residents",
-    "Noise pollution from loudspeakers at night",
-    "River water contaminated by sewage",
-    "Public transport frequency is very low",
-
-    # ---------------- LOW ----------------
-    "Street light not working in my street",
-    "Garbage not collected for two days",
-    "Park maintenance is needed",
-    "Cleaning of street required",
-    "Broken bench in public park",
-    "Tree trimming required near road",
-    "Grass not maintained in park",
-    "Playground equipment damaged",
-    "Streetlight not working in lane",
-    "Public dustbins are overflowing",
-    "Painting of walls required in locality",
-    "Small drainage blockage causing smell",
-    "Minor road repair needed",
-    "Broken signboard in street",
-    "Need cleaning in park area",
-    "Street sweeping not done"
+    "Gas leak emergency", "Fire accident", "Hospital no electricity",
+    "Road potholes", "Water issue", "Garbage not collected",
+    "Street light not working", "Park maintenance"
 ]
 
-train_labels = [
-    # HIGH (16)
-    "High","High","High","High","High","High","High","High",
-    "High","High","High","High","High","High","High","High",
+train_labels = ["High","High","High","Medium","Medium","Low","Low","Low"]
 
-    # MEDIUM (16)
-    "Medium","Medium","Medium","Medium","Medium","Medium","Medium","Medium",
-    "Medium","Medium","Medium","Medium","Medium","Medium","Medium","Medium",
-
-    # LOW (16)
-    "Low","Low","Low","Low","Low","Low","Low","Low",
-    "Low","Low","Low","Low","Low","Low","Low","Low"
-]
-critical_keywords = [
-    "emergency", "fire", "accident", "hospital",
-    "death", "injury", "gas leak", "collapse"
-] 
-education_keywords = [
-    "school", "education", "teacher", "funding"
-]
-vectorizer = TfidfVectorizer(
-    stop_words="english",
-    ngram_range=(1,2)
-)
+vectorizer = TfidfVectorizer(stop_words="english")
 X_train = vectorizer.fit_transform(train_texts)
 
 model = LogisticRegression()
-model.fit(X_train, train_labels)  
+model.fit(X_train, train_labels)
 
-def is_duplicate(new_text):
+# ---------------- DUPLICATE CHECK ----------------
+def check_duplicate(new_text):
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT complaint_text FROM complaints")
+    cursor.execute("SELECT id, complaint_text, duplicate_count, priority FROM complaints")
     existing = cursor.fetchall()
-    conn.close()
 
     if not existing:
-        return False
+        return None
 
-    all_texts = [row[0] for row in existing]
-    all_texts.append(new_text)
-
-    vectors = vectorizer.transform(all_texts)
+    texts = [row[1] for row in existing] + [new_text]
+    vectors = vectorizer.transform(texts)
 
     similarity = cosine_similarity(vectors[-1], vectors[:-1])
-
     max_sim = float(np.max(similarity))
+    index = int(np.argmax(similarity))
 
     if max_sim > 0.8:
-        return True
+        return existing[index]
 
-    return False
+    return None
 
+# ---------------- PRIORITY ----------------
 def get_priority(severity, sentiment):
-    base = 0
-
-    if severity == "High":
-        base = 90
-    elif severity == "Medium":
-        base = 60
-    else:
-        base = 30
-
-    # sentiment adjustment
+    base = 90 if severity == "High" else 60 if severity == "Medium" else 30
     if sentiment < -0.5:
         base += 10
-
     return min(base, 100)
 
+# ---------------- ROUTES ----------------
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -160,47 +81,96 @@ def home():
 def submit():
     complaint_text = request.form["complaint"]
 
-    # sentiment
     blob = TextBlob(complaint_text)
-    sentiment = blob.sentiment.polarity 
+    sentiment = blob.sentiment.polarity if blob.sentiment else 0.0
 
-    if sentiment > 0:
-        sentiment_label = "Positive"
-    elif sentiment < 0:
-        sentiment_label = "Negative"
-    else:
-        sentiment_label = "Neutral"
+    duplicate = check_duplicate(complaint_text)
 
-    # duplicate check FIRST
-    if is_duplicate(complaint_text):
-        return "Duplicate complaint detected. Already exists in system."
+    # HANDLE DUPLICATE
+    if duplicate:
+        comp_id, old_text, count, old_priority = duplicate
 
-    # ML prediction
+        new_count = count + 1
+        boosted_priority = min(old_priority + 5, 100)
+
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE complaints
+            SET duplicate_count=?, priority=?
+            WHERE id=?
+        """, (new_count, boosted_priority, comp_id))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "status": "duplicate",
+            "count": new_count,
+            "priority": boosted_priority
+        })
+
+    # NEW COMPLAINT
     X_input = vectorizer.transform([complaint_text])
     severity = model.predict(X_input)[0]
-
-    # priority
     priority = get_priority(severity, sentiment)
 
-    # store in DB ONCE
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO complaints (complaint_text, sentiment, severity, priority) VALUES (?, ?, ?, ?)",
-        (complaint_text, sentiment, severity, priority)
-    )
+    cursor.execute("""
+        INSERT INTO complaints (complaint_text, sentiment, severity, priority)
+        VALUES (?, ?, ?, ?)
+    """, (complaint_text, sentiment, severity, priority))
 
     conn.commit()
     conn.close()
 
-    return f"Predicted Severity: {severity}, Sentiment: {sentiment_label}, Priority: {priority}"
+    return jsonify({
+        "status": "success",
+        "severity": severity,
+        "priority": priority
+    })
 
+# ---------------- ADMIN DASHBOARD ----------------
 @app.route("/admin")
 def admin():
-    return render_template("admin.html")
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
 
+    cursor.execute("""
+        SELECT complaint_text, sentiment, severity, priority, timestamp, duplicate_count
+        FROM complaints ORDER BY priority DESC
+    """)
+    complaints = cursor.fetchall()
+
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE severity='High'")
+    high = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE severity='Medium'")
+    medium = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE severity='Low'")
+    low = cursor.fetchone()[0]
+
+    one_hour_ago = datetime.now() - timedelta(hours=1)
+    cursor.execute("SELECT COUNT(*) FROM complaints WHERE timestamp >= ?", (one_hour_ago,))
+    recent_count = cursor.fetchone()[0]
+
+    top = complaints[0] if complaints else None
+
+    conn.close()
+
+    return render_template("admin.html",
+                           complaints=complaints,
+                           high=high,
+                           medium=medium,
+                           low=low,
+                           top=top,
+                           recent_count=recent_count)
+
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True) 
- 
+    app.run(debug=True)
