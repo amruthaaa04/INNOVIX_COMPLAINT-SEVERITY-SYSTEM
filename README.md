@@ -76,15 +76,18 @@ Admin dashboard displays insights
 
 ### 🏠 User Complaint Form
 
-*Add screenshot here*
+<img width="707" height="593" alt="Screenshot 2026-04-29 064836" src="https://github.com/user-attachments/assets/22e15a8c-3ed6-4f37-bff4-64f790df3bab" />
+
 
 ### 📊 Admin Dashboard
 
-*Add screenshot here*
+<img width="1809" height="914" alt="Screenshot 2026-04-29 064805" src="https://github.com/user-attachments/assets/4267248c-ae5c-4c85-a6bf-2d5ea3ecd8ac" />
+
 
 ### 📋 Complaint Table with Insights
 
-*Add screenshot here*
+<img width="850" height="571" alt="Screenshot 2026-04-29 064812" src="https://github.com/user-attachments/assets/fe5d829e-a0d2-4e9c-807a-a4d16cf779a1" />
+
 
 ---
 
