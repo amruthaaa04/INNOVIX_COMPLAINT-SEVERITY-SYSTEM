@@ -1,22 +1,151 @@
-# INNOVIX_COMPLAINT-SEVERITY-SYSTEM
-Problem Statement :
-Public service authorities receive a large number of citizen complaints daily, but current systems lack intelligent prioritization, causing delays in resolving critical issues. We aim to build an intelligent decision-support system that analyzes complaint text, predicts severity, detects duplicate issues, and prioritizes complaints to help authorities respond faster and more effectively
+# 🚀 Intelligent Complaint Severity & 
 
-Explanation : Our project is an intelligent public complaint management system. Citizens submit complaints through a web platform. The system uses NLP to understand the complaint text, ML to predict severity, detects duplicate complaints from the same area, and ranks them by priority for authorities. This supports faster and more informed decision-making.”
+---
 
-TECh STACK
+## 📌 Problem Statement
 
-Layer	                Tech
-Frontend              HTML, CSS, JavaScript
-Backend	              Python (Flask)
-NLP	                  TextBlob
-ML	                  Rule-based + Logistic     Regression
-Duplicate Detection	  TF-IDF + Cosine Similarity
-Database	            SQLite
-	
-Solution 
-We are building a web-based intelligent decision-support system where users can submit complaints online. The system uses Natural Language Processing (NLP) and intelligent logic to analyze complaints and assist administrators in prioritizing them effectively.
+Public service authorities receive a large number of citizen complaints daily. However, existing systems lack intelligent prioritization, leading to delays in resolving critical issues.
 
+This project builds an **intelligent decision-support system** that:
 
+* Analyzes complaint text
+* Predicts severity
+* Detects duplicate issues
+* Prioritizes complaints for faster response
 
+---
 
+## 💡 Solution Overview
+
+We developed a **web-based intelligent complaint management system** where:
+
+👤 Users submit complaints
+🧠 System analyzes using NLP + ML
+🔁 Detects duplicate complaints
+📊 Assigns priority dynamically
+🧑‍💼 Admin dashboard supports decision-making
+
+---
+
+## ⚙️ Key Features
+
+* 🧠 NLP-based complaint analysis
+* 📊 Severity prediction (High / Medium / Low)
+* 🔁 Duplicate detection using TF-IDF + Cosine Similarity
+* ⚡ Priority boosting for repeated complaints
+* 📋 Admin dashboard with insights
+* 🤖 AI-based action recommendations
+* 📤 Export reports (CSV)
+
+---
+
+## 🧱 Tech Stack
+
+| Layer               | Technology                         |
+| ------------------- | ---------------------------------- |
+| Frontend            | HTML, CSS, JavaScript              |
+| Backend             | Python (Flask)                     |
+| NLP                 | TextBlob                           |
+| Machine Learning    | Logistic Regression (Scikit-learn) |
+| Duplicate Detection | TF-IDF + Cosine Similarity         |
+| Database            | SQLite                             |
+
+---
+
+## 🧪 System Workflow
+
+```text
+User submits complaint
+        ↓
+NLP analyzes text
+        ↓
+ML predicts severity
+        ↓
+Duplicate detection runs
+        ↓
+Priority assigned
+        ↓
+Stored in database
+        ↓
+Admin dashboard displays insights
+```
+
+---
+
+## 📸 Screenshots
+
+### 🏠 User Complaint Form
+
+*Add screenshot here*
+
+### 📊 Admin Dashboard
+
+*Add screenshot here*
+
+### 📋 Complaint Table with Insights
+
+*Add screenshot here*
+
+---
+
+## ▶️ How to Run
+
+### 1. Clone Repository
+
+```
+git clone https://github.com/amruthaaa04/INNOVIX_COMPLAINT-SEVERITY-SYSTEM.git
+cd INNOVIX_COMPLAINT-SEVERITY-SYSTEM
+```
+
+### 2. Install Dependencies
+
+```
+pip install -r requirements.txt
+```
+
+### 3. Run Application
+
+```
+python app.py
+```
+
+### 4. Open Browser
+
+```
+http://127.0.0.1:5000/
+```
+
+---
+
+## 📊 Admin Capabilities
+
+* View all complaints
+* Monitor severity & priority
+* Identify frequent issues
+* Update complaint status
+* Export reports
+
+---
+
+## 🎯 Impact
+
+* ⏱ Faster resolution of critical issues
+* 📉 Reduced redundancy via duplicate detection
+* 📊 Data-driven decision-making
+* 🏛 Improved public service efficiency
+
+---
+
+## 🔮 Future Enhancements
+
+* 📍 Location-based clustering
+* 📱 Mobile-friendly UI
+* 🌐 Cloud deployment
+* 🔔 Real-time notifications
+* 📊 
+
+---
+
+## 📢 Final Note
+
+This project demonstrates how **NLP + Machine Learning** can transform traditional complaint systems into intelligent, efficient, and scalable decision-support platforms.
